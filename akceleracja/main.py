@@ -1,27 +1,30 @@
 import ctypes
 import numpy as np
 from PIL import Image
-
-# Load an image and convert to grayscale
-img = Image.open("images/image1.png").convert("L")
+import time
+Image.MAX_IMAGE_PIXELS = None
+# Load an image
+img = Image.open("images/image64kx21k.png").convert("L") #greyscale
 img_np = np.array(img, dtype=np.uint8)
 height, width = img_np.shape
 
-# Load C library
-#lib = ctypes.CDLL("./singlethread.dll")
-lib = ctypes.CDLL("./multi_thread.dll")
+# Choose mode
+lib = ctypes.CDLL("./singlethread.dll")
+#lib = ctypes.CDLL("./multi_thread.dll")
 #lib = ctypes.CDLL("./gputhread.dll")
 
-# Define C function signature
+# specify what is passed to the dll
 lib.process_image.argtypes = [ctypes.POINTER(ctypes.c_ubyte), ctypes.c_int, ctypes.c_int]
 lib.process_image.restype = None
 
 # Pass pointer to raw image data
 ptr = img_np.ctypes.data_as(ctypes.POINTER(ctypes.c_ubyte))
 
-# Call the C function
+# Call the chosen function
+timer = time.time()
 lib.process_image(ptr, width, height)
-
-# Optionally convert back to image
+timer =time.time() -timer
+# take the data from dll, and convert it back to an image
 processed_img = Image.fromarray(img_np)
-processed_img.save("output/processed2.png")
+processed_img.save("output/processed7.png")
+print(timer)

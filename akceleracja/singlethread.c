@@ -3,7 +3,6 @@
 #include <math.h>
 #include <stdlib.h>
 
-// Windows export macro
 #ifdef _WIN32
 #define EXPORT __declspec(dllexport)
 #else
@@ -15,14 +14,13 @@ EXPORT void process_image(uint8_t *pixels, int width, int height) {
     int gx, gy;
     int pos;
 
-    // Allocate a temporary buffer for the result
     uint8_t *output = (uint8_t *)malloc(width * height);
     if (!output) {
         printf("Error: Unable to allocate memory.\n");
         return;
     }
 
-    // Sobel operator kernels
+    // Sobel operators
     int Gx[3][3] = {
         {-1, 0, 1},
         {-2, 0, 2},
@@ -34,13 +32,13 @@ EXPORT void process_image(uint8_t *pixels, int width, int height) {
         { 1,  2,  1}
     };
 
-    // Apply Sobel filter (skip borders)
+    // filtering
     for (y = 1; y < height - 1; y++) {
         for (x = 1; x < width - 1; x++) {
             gx = 0;
             gy = 0;
 
-            // Compute gradients
+            // gradients
             for (int ky = -1; ky <= 1; ky++) {
                 for (int kx = -1; kx <= 1; kx++) {
                     int pixel = pixels[(y + ky) * width + (x + kx)];
@@ -49,7 +47,7 @@ EXPORT void process_image(uint8_t *pixels, int width, int height) {
                 }
             }
 
-            // Gradient magnitude (clamped to 0–255)
+            // gradient magnitude
             int magnitude = (int)sqrt(gx * gx + gy * gy);
             if (magnitude > 255) magnitude = 255;
             if (magnitude < 0) magnitude = 0;
@@ -58,11 +56,11 @@ EXPORT void process_image(uint8_t *pixels, int width, int height) {
         }
     }
 
-    // Copy result back into the input buffer
+    // create output image
     for (i = 0; i < width * height; i++) {
         pixels[i] = output[i];
     }
 
     free(output);
-    printf("Applied Sobel filter on image %dx%d\n", width, height);
+    printf("Applied Sobel filter on image %dx%d\n (Singlethread)", width, height);
 }
